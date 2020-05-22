@@ -1,0 +1,10 @@
+.form {
+  width: 50%;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.form > label > input {
+  width: 100%;
+}
