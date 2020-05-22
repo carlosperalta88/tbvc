@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { navigate } from 'gatsby'
 import useTwilioVideo from '../hooks/use-twilio-video'
+import Styles from './video-display.module.css'
 
 const VideoDisplay = ({ roomID }) => {
   const { state, startVideo, videoRef } = useTwilioVideo()
@@ -16,7 +17,7 @@ const VideoDisplay = ({ roomID }) => {
   }, [state, roomID, startVideo])
   return (<>
     <h1>Room: "{roomID}"</h1>
-    <div className="chat" ref={videoRef} />
+    <div className={Styles.chat} ref={videoRef} />
   </>)
 }
 

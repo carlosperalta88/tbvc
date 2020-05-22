@@ -59,7 +59,7 @@ const useTwilioVideo = () => {
       dispatch({ type: 'join', token: result.data, identity, roomName })
   }
 
-  const handleRemoteParticipant = (container, participant) => {
+  const handleRemoteParticipant = container => participant => {
     const id = participant.sid
     const el = document.createElement('div')
     el.id = id
@@ -96,13 +96,21 @@ const useTwilioVideo = () => {
     let videoInput = devices.find(device => device.kind === 'videoinput')
     let audioInput = devices.find(device => device.kind === 'audioinput')
 
-    console.log(videoInput, audioInput)
-    const localTracks = createLocalTracks({ audio: { deviceId: audioInput.deviceId }, video: { deviceId: videoInput.deviceId } })
+    if (!videoInput) {
+      console.error(`Sorry, You can't join without a camera`)
+      return
+    }
+
+    const localTracks = await createLocalTracks({ 
+      audio: { deviceId: audioInput.deviceId }, 
+      video: { deviceId: videoInput.deviceId } 
+    })
     
     const room = await connect(
       token,
       {
         name: roomName,
+        tracks: localTracks,
         logLevel: 'info'
       }
     ).catch(err => { console.error(`Unable to join the room ${err.message}`) })
@@ -112,12 +120,13 @@ const useTwilioVideo = () => {
     
     if (!videoRef.current.hasChildNodes()) {
       const localEl = localTrack.attach()
-      videoRef.current.appendChild(localEl)
+      const el = document.createElement('div')
+      el.className = 'local-broadcast'
+      el.appendChild(localEl)
+      videoRef.current.appendChild(el)
     }
 
-    const handleParticipant = participant => {
-      handleRemoteParticipant(videoRef.current, participant)
-    }
+    const handleParticipant = handleRemoteParticipant(videoRef.current)
 
     room.participants.forEach(handleParticipant)
     room.on('participantConnected', handleParticipant)
