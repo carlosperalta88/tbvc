@@ -112,7 +112,7 @@ const useTwilioVideo = () => {
     
     if (!videoRef.current.hasChildNodes()) {
       const localEl = localTrack.attach()
-      videoRef.current.appendChile(localEl)
+      videoRef.current.appendChild(localEl)
     }
 
     const handleParticipant = participant => {
