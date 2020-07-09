@@ -25,6 +25,9 @@ const reducer = (state, action) => {
         ...state,
         room: action.room
       }
+    case 'disconnect':
+      state.room && state.room.disconnect()
+      return DEFAULT_STATE
     default:
       return DEFAULT_STATE
   }
@@ -64,15 +67,17 @@ const useTwilioVideo = () => {
     const el = document.createElement('div')
     el.id = id
     el.className = 'remote-participant'
-    const name = document.createElement('h4')
-    name.innerText = participant.identity
-    el.appendChild(name)
+    // const name = document.createElement('h4')
+    // name.innerText = participant.identity
+    // el.appendChild(name)
 
     container.appendChild(el)
 
     const addTrack = track => {
       const participantDiv = document.getElementById(id)
+      console.log(track)
       const media = track.attach()
+      media.setAttribute('controls', '')
       participantDiv.appendChild(media)
     }
 
@@ -83,6 +88,11 @@ const useTwilioVideo = () => {
     })
 
     participant.on('trackSubscribed', addTrack)
+    participant.on('trackUnsubscribed', (track) => {
+      track.detach().forEach((el) => el.remove())
+      const container = document.getElementById(id)
+      if (container) container.remove()
+    })
   }
 
   const connectToRoom = async () => {
@@ -111,7 +121,19 @@ const useTwilioVideo = () => {
       {
         name: roomName,
         tracks: localTracks,
-        logLevel: 'info'
+        logLevel: 'info',
+        video: { height: 720, frameRate: 24, width: 1280 },
+        bandwidthProfile: {
+          video: {
+            mode: 'grid',
+            maxTracks: 3,
+            renderDimensions: {
+              high: {height:1080, width:1920},
+              standard: {height:720, width:1280},
+              low: {height:176, width:144}
+            }
+          }
+        }
       }
     ).catch(err => { console.error(`Unable to join the room ${err.message}`) })
 
@@ -120,6 +142,7 @@ const useTwilioVideo = () => {
     
     if (!videoRef.current.hasChildNodes()) {
       const localEl = localTrack.attach()
+      localEl.setAttribute('controls', '')
       const el = document.createElement('div')
       el.className = 'local-broadcast'
       el.appendChild(localEl)
@@ -135,8 +158,9 @@ const useTwilioVideo = () => {
   }
 
   const startVideo = () => connectToRoom()
+  const leaveRoom = () => dispatch({type: 'disconnect'})
 
-  return { state, getRoomToken, startVideo, videoRef }
+  return { state, getRoomToken, startVideo, videoRef, leaveRoom }
 }
 
 export default useTwilioVideo
