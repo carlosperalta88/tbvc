@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useRef } from 'react'
 import axios from 'axios'
 import { connect, createLocalTracks } from 'twilio-video'
 
-const TWILIO_TOKEN_URL = 'https://viridian-bat-2593.twil.io/create-room-token'
+const TWILIO_TOKEN_URL = process.env.TWILIO_TOKEN_URL
 
 const DEFAULT_STATE = {
   identity: false,
