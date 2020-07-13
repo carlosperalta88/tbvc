@@ -6,6 +6,14 @@
     align-content: center;
 }
 
+.participants {
+    width: 30%;
+}
+
+.activeParticipant {
+    width: 70%;
+}
+
 audio {
     display: none;
 }
