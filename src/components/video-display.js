@@ -4,7 +4,7 @@ import useTwilioVideo from '../hooks/use-twilio-video'
 import Styles from './video-display.module.css'
 
 const VideoDisplay = ({ roomID }) => {
-  const { state, startVideo, videoRef, leaveRoom, toggleAudio, toggleVideo } = useTwilioVideo()
+  const { state, startVideo, videoRef, leaveRoom, handleVideoSelection } = useTwilioVideo()
 
   useEffect(() => {
     if (!state.token) {
@@ -23,6 +23,7 @@ const VideoDisplay = ({ roomID }) => {
 
   const test = (el) => {
     console.log(el.target)
+    handleVideoSelection(el.target)
   }
 
   return (<>

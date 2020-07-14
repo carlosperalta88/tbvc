@@ -8,7 +8,9 @@ const DEFAULT_STATE = {
   identity: false,
   roomName: false,
   token: false,
-  room: false
+  room: false,
+  activeParticipant: false,
+  isActiveParticipantPinned: false
 }
 
 const isMobile = (() => {
@@ -32,9 +34,19 @@ const reducer = (state, action) => {
         ...state,
         room: action.room
       }
+    case 'set-active-participant':
+      return {
+        ...state,
+        activeParticipant: action.participant
+      }
     case 'disconnect':
       state.room && state.room.disconnect()
       return DEFAULT_STATE
+    case 'activeParticipantPinnedToggle':
+      return {
+        ...state,
+        isActiveParticipantPinned: action.appt
+      }
     default:
       return DEFAULT_STATE
   }
@@ -83,13 +95,6 @@ const connectOptions = {
   // Capture 720p video @ 24 fps.
   video: { height: 720, frameRate: 24, width: 1280 }
 };
-
-// The current active Participant in the Room.
-let activeParticipant = null;
-
-// Whether the user has selected the active Participant by clicking on
-// one of the video thumbnails.
-let isActiveParticipantPinned = false;
 
 // For mobile browsers, limit the maximum incoming video bitrate to 2.5 Mbps.
 if (isMobile) {
@@ -155,45 +160,87 @@ const useTwilioVideo = () => {
     participant.on('trackUnsubscribed', removeTrack)
   }
 
-  const setActiveParticipant = (participant) => {
-    const activeVideo = document.getElementById('active-video')
-    if (activeParticipant) {
-      const elActiveParticipant = document.getElementById(activeParticipant.sid)
-      elActiveParticipant.removeClass('active');
-      elActiveParticipant.removeClass('pinned');
+  const getParticipant = (pId) => {
+    const {room} = state
+    console.log([...room.participants][0].filter((part) => part.sid === pId))
+    return [...room.participants][0].filter((part) => part.sid === pId)
+  }
 
-      // Detach any existing VideoTrack of the active Participant.
-      const { track: activeTrack } = Array.from(elActiveParticipant.videoTracks.values())[0] || {};
-      if (activeTrack) {
-        activeTrack.detach(activeVideo.get(0));
-        activeVideo.css('opacity', '0');
+  const handleVideoSelection = (p) => {
+    console.log(p.dataset.id)
+    const {room, activeParticipant, isActiveParticipantPinned} = state
+    const participant = (getParticipant(p.dataset.id).length > 0 ? getParticipant(p.dataset.id)[0] : room.localParticipant)
+    if (activeParticipant === participant && isActiveParticipantPinned) {
+      // Unpin the RemoteParticipant and update the current active Participant.
+      setVideoPriority(participant, null);
+      setCurrentActiveParticipant(room);
+      dispatch({ type: 'activeParticipantPinnedToggle', appt: !isActiveParticipantPinned })
+    } else {
+      // Pin the RemoteParticipant as the active Participant.
+      if (isActiveParticipantPinned) {
+        setVideoPriority(activeParticipant, null);
       }
+      setVideoPriority(participant, 'high');
+      dispatch({ type: 'activeParticipantPinnedToggle', appt: !isActiveParticipantPinned })
+      setActiveParticipant(participant);
+    }
+  }
+
+  const setActiveParticipant = (participant) => {
+    const { activeParticipant, isActiveParticipantPinned } = state
+    const activeVideo = document.getElementById('active-video')
+
+    if (activeParticipant) {
+      const elActiveParticipant = document.getElementById(activeParticipant.sid).firstChild
+
+      elActiveParticipant.classList.remove('active');
+      elActiveParticipant.classList.remove('pinned');
+
+      dispatch({ type: 'set-active-participant', participant: false })
+      setTimeout(activeVideo.firstChild.remove(), 100)
     }
 
     // Set the new active Participant.
-    activeParticipant = participant;
+    dispatch({ type: 'set-active-participant', participant })
     const { identity, sid } = participant;
     const elParticipant = document.getElementById(sid)
 
-    elParticipant.addClass('active');
+    elParticipant.classList.add('active');
     if (isActiveParticipantPinned) {
-      elParticipant.addClass('pinned');
+      elParticipant.classList.add('pinned');
     }
 
     // Attach the new active Participant's video.
     const { track } = Array.from(participant.videoTracks.values())[0] || {};
     if (track) {
-      track.attach(activeVideo.get(0));
-      activeVideo.css('opacity', '');
+      const media = track.attach()
+      media.dataset.id = sid
+      media.dataset.identity = identity
+      activeVideo.appendChild(media)
     }
 
     // Set the new active Participant's identity
-    elParticipant.attr('data-identity', identity);
+    elParticipant.dataset.identity = identity;
   }
 
   const setCurrentActiveParticipant = (room) => {
     const { dominantSpeaker, localParticipant } = room
     setActiveParticipant(dominantSpeaker || localParticipant)
+  }
+
+  /**
+   * Set the VideoTrack priority for the given RemoteParticipant. This has no
+   * effect in Peer-to-Peer Rooms.
+   * @param participant - the RemoteParticipant whose VideoTrack priority is to be set
+   * @param priority - null | 'low' | 'standard' | 'high'
+   */
+  const setVideoPriority = (participant, priority) => {
+    participant.videoTracks.forEach(publication => {
+      const track = publication.track;
+      if (track && track.setPriority) {
+        track.setPriority(priority);
+      }
+    });
   }
 
   const connectToRoom = async () => {
@@ -256,7 +303,7 @@ const useTwilioVideo = () => {
   const startVideo = () => connectToRoom()
   const leaveRoom = () => dispatch({type: 'disconnect'})
 
-  return { state, getRoomToken, startVideo, videoRef, leaveRoom }
+  return { state, getRoomToken, startVideo, videoRef, leaveRoom, handleVideoSelection }
 }
 
 export default useTwilioVideo
