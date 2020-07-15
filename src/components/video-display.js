@@ -27,8 +27,7 @@ const VideoDisplay = ({ roomID }) => {
   }
 
   return (<>
-    <h1>Room: "{roomID}"</h1>
-    <button onClick={leaveRoom}>Leave Room</button>
+    <button className={Styles.leave} onClick={leaveRoom}>Leave Room</button>
     <div className={Styles.chat}>
       <div 
         className={Styles.participants} 

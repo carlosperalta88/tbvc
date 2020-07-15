@@ -615,6 +615,23 @@ pre tt:before,
 pre tt:after {
   content: "";
 }
+footer {
+  position: absolute;
+  bottom: 0;
+  left: 1em;
+  font-size: small;
+  color: #cccccc;
+}
+footer > a:link,
+footer > a:hover,
+footer > a:visited,
+footer > a:active {
+  color: #cccccc;
+}
+
+body {
+  background: #3e3081;
+}
 @media only screen and (max-width: 480px) {
   html {
     font-size: 100%;

@@ -28,15 +28,16 @@ const Layout = ({ children }) => {
       <div
         style={{
           margin: `0 auto`,
-          maxWidth: `100%`,
-          padding: `0 1.0875rem 1.45rem`,
+          width: `100vw`,
+          height: `100vh`,
+          padding: `0`,
         }}
       >
         <main>{children}</main>
         <footer>
-          © {new Date().getFullYear()}, Built with
+          © {new Date().getFullYear()}, Built by
           {` `}
-          <a href="https://www.gatsbyjs.org">Gatsby</a>
+          <a href="https://www.aprondo.com">Aprondo</a>
         </footer>
       </div>
     </>

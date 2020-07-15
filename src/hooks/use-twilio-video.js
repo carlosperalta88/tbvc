@@ -162,14 +162,13 @@ const useTwilioVideo = () => {
 
   const getParticipant = (pId) => {
     const {room} = state
-    console.log([...room.participants][0].filter((part) => part.sid === pId))
     return [...room.participants][0].filter((part) => part.sid === pId)
   }
 
   const handleVideoSelection = (p) => {
-    console.log(p.dataset.id)
     const {room, activeParticipant, isActiveParticipantPinned} = state
-    const participant = (getParticipant(p.dataset.id).length > 0 ? getParticipant(p.dataset.id)[0] : room.localParticipant)
+    const participant = (room.localParticipant.sid === p.dataset.id ? room.localParticipant : getParticipant(p.dataset.id)[0])
+    console.log(room.localParticipant)
     if (activeParticipant === participant && isActiveParticipantPinned) {
       // Unpin the RemoteParticipant and update the current active Participant.
       setVideoPriority(participant, null);
@@ -235,6 +234,7 @@ const useTwilioVideo = () => {
    * @param priority - null | 'low' | 'standard' | 'high'
    */
   const setVideoPriority = (participant, priority) => {
+    console.log(participant)
     participant.videoTracks.forEach(publication => {
       const track = publication.track;
       if (track && track.setPriority) {
@@ -292,12 +292,13 @@ const useTwilioVideo = () => {
     // Handles participants connection
     const handleParticipant = handleRemoteParticipant(videoRef.current)
     room.participants.forEach(handleParticipant)
-
+    
     // Room events
     room.on('participantConnected', handleParticipant)
     room.on('participantDisconnected', handleParticipant)
-
+    
     dispatch({ type: 'set-active-room', room })
+    setCurrentActiveParticipant(room)
   }
 
   const startVideo = () => connectToRoom()
