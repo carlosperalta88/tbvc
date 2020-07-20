@@ -258,9 +258,6 @@ const useTwilioVideo = () => {
       video: isMobile ? null : window.localStorage.getItem('videoDeviceId')
     };
 
-    const devices = await navigator.mediaDevices.enumerateDevices()
-    .catch(error => console.log(`fuck: ${error}`))
-
     const localTracks = await createLocalTracks(deviceIds)
     const room = await connect(
       token,
