@@ -11,4 +11,9 @@ exports.onCreatePage = ({ page, actions }) => {
     page.matchPath = '/room/*'
     actions.createPage(page)
   }
+  
+  if (page.path.match(/^\/session/)) {
+    page.matchPath = '/session/*'
+    actions.createPage(page)
+  }
 }

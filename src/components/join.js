@@ -21,7 +21,7 @@ const Join = ({ location }) => {
 
   return (
     <>
-      <h1>Join a video chat</h1>
+      <h1>Join a video chat using Twilio</h1>
       <pre>{JSON.stringify(state, null, 2)}</pre>
       <form className={Styles.form} onSubmit={handleSubmit}>
         <label htmlFor="identity">
