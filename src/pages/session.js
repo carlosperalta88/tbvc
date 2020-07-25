@@ -4,7 +4,7 @@ import axios from 'axios';
 import { OpenVidu } from 'openvidu-browser';
 import UserVideoComponent from '../components/UserVideoComponent';
 
-const OPENVIDU_SERVER_URL = 'https://' + window.location.hostname + ':4443';
+const OPENVIDU_SERVER_URL = process.env.OPENVIDU_SERVER_URL;
 const OPENVIDU_SERVER_SECRET = process.env.OPENVIDU_SERVER_SECRET;
 
 export default class Vidu extends Component {
